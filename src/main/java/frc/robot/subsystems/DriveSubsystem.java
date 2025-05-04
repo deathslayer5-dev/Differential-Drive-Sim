@@ -84,8 +84,8 @@ public class DriveSubsystem extends SubsystemBase {
 
         leftLeaderMotorConfig.apply(globalConfig);
         rightLeaderMotorConfig.apply(globalConfig);
-        leftFollowerMotorConfig.apply(globalConfig);
-        rightFollowerMotorConfig.apply(globalConfig);
+        leftFollowerMotorConfig.apply(globalConfig).follow(m_leftLeaderMotor);
+        rightFollowerMotorConfig.apply(globalConfig).follow(m_rightLeaderMotor);
 
         m_leftLeaderMotor.configure(leftLeaderMotorConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
