@@ -23,11 +23,5 @@ public final class Constants {
 
   // TODO: Insert DriveConstants here...
   public static class DriveConstants {
-    public static final int kCurrentLimit = 40;
-
-    public static final int kLeftLeaderMotorID = 1;
-    public static final int kLeftFollowerMotorID = 2;
-    public static final int kRightLeaderMotorID = 3;
-    public static final int kRightFollowerMotorID = 4;
   }
 }
