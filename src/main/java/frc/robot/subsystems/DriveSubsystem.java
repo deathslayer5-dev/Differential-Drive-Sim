@@ -42,8 +42,11 @@ public class DriveSubsystem extends SubsystemBase {
 
     StructPublisher<Pose2d> m_publisher;
 
-    // TODO: Insert your drive motors and differential drive here...
-
+    private final SparkMax m_leftLeader;
+    private final SparkMax m_rightLeader;
+    private final SparkMax m_leftFollower;
+    private final SparkMax m_rightFollower;
+    private final DifferentialDrive m_drive;
     /** Creates a new DriveSubsystem. */
     public DriveSubsystem() {
 
@@ -60,14 +63,38 @@ public class DriveSubsystem extends SubsystemBase {
 
         m_publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
-        // TODO: Instantiate motors & differential drive, then configure motors here...
+        m_leftLeader = new SparkMax(DriveConstants.kLeftLeaderMotorPort, MotorType.kBrushless);
+        m_leftFollower = new SparkMax(DriveConstants.kLeftFollowerMotorPort, MotorType.kBrushless);
+        m_rightLeader = new SparkMax(DriveConstants.kRightLeaderMotorPort, MotorType.kBrushless);
+        m_rightFollower = new SparkMax(DriveConstants.kRightFollowerMotorPort, MotorType.kBrushless);
 
-        m_leftMotorSim = new SparkMaxSim(m_leftLeaderMotor, DCMotor.getNEO(2));
-        m_rightMotorSim = new SparkMaxSim(m_rightLeaderMotor, DCMotor.getNEO(2));
+        SparkMaxConfig globalConfig = new SparkMaxConfig();
+        SparkMaxConfig leftLeaderConfig = new SparkMaxConfig();
+        SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
+        SparkMaxConfig rightLeaderConfig = new SparkMaxConfig();
+        SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
+
+        globalConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(40);
+        leftLeaderConfig.apply(globalConfig);
+        leftFollowerConfig.apply(globalConfig).follow(m_leftLeader);
+        rightLeaderConfig.apply(globalConfig).inverted(true);
+        rightFollowerConfig.apply(globalConfig).follow(m_rightLeader);
+
+        m_leftLeader.configure(leftLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_leftFollower.configure(leftFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_rightLeader.configure(rightLeaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_rightFollower.configure(rightFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        m_drive = new DifferentialDrive(m_leftLeader, m_rightLeader);
+
+        m_leftMotorSim = new SparkMaxSim(m_leftLeader, DCMotor.getNEO(2));
+        m_rightMotorSim = new SparkMaxSim(m_rightLeader, DCMotor.getNEO(2));
     }
 
-    // TODO: Insert your arcadeDrive method here...
 
+    public void arcadeDrive(double forward, double rotation) {
+        m_drive.arcadeDrive(forward, rotation);
+    }
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
@@ -78,19 +105,19 @@ public class DriveSubsystem extends SubsystemBase {
         m_driveSim.update(0.02);
 
         m_leftMotorSim.iterate(
-                (((kNEOMaxRPM * m_leftLeaderMotor.get()) / kDrivetrainGearRatio) * Math.PI
+                (((kNEOMaxRPM * m_leftLeader.get()) / kDrivetrainGearRatio) * Math.PI
                         * kWheelDiameterInches) / 60,
                 RoboRioSim.getVInVoltage(), 0.02);
         m_rightMotorSim.iterate(
-                (((kNEOMaxRPM * m_rightLeaderMotor.get()) / kDrivetrainGearRatio) * Math.PI
+                (((kNEOMaxRPM * m_rightLeader.get()) / kDrivetrainGearRatio) * Math.PI
                         * kWheelDiameterInches) / 60,
                 RoboRioSim.getVInVoltage(), 0.02);
 
         m_leftMotorSim.setBusVoltage(RoboRioSim.getVInVoltage());
         m_rightMotorSim.setBusVoltage(RoboRioSim.getVInVoltage());
 
-        m_leftMotorSim.setAppliedOutput(m_leftLeaderMotor.getAppliedOutput());
-        m_rightMotorSim.setAppliedOutput(m_rightLeaderMotor.getAppliedOutput());
+        m_leftMotorSim.setAppliedOutput(m_leftLeader.getAppliedOutput());
+        m_rightMotorSim.setAppliedOutput(m_rightLeader.getAppliedOutput());
 
         m_driveSim.setInputs(m_leftMotorSim.getAppliedOutput() * m_leftMotorSim.getBusVoltage(),
                 m_rightMotorSim.getAppliedOutput() * m_rightMotorSim.getBusVoltage());
