@@ -10,6 +10,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ArcadeDriveCommand;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ArmSubsystem;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -21,9 +24,21 @@ import frc.robot.subsystems.DriveSubsystem;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  /*pseudo code
+   * init Drive Subsystem
+   * init Inputs(Xbox Controller)
+   * init trigger bindings
+   * bind bindings to arcade drive command{
+   *  a = return to 0 degrees
+   *  b = set arm to 45 degrees
+   *  x = set arm to 90 degrees
+   *  y = stop arm
+   * }
+   */
+
   // The robot's subsystems and commands are defined here...
-  // TODO: Initialize your DriveSubsystem here...
   private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
+  private final ArmSubsystem m_armSubsystem = new ArmSubsystem();
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(
       OperatorConstants.kDriverControllerPort);
@@ -34,8 +49,10 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    SmartDashboard.putData("Arm to 45",m_armSubsystem.setAngleCommand(45));
+    SmartDashboard.putData("Arm to 90",m_armSubsystem.setAngleCommand(90));
+    SmartDashboard.putData("Arm to 0",m_armSubsystem.stopCommand());
   }
-
   /**
    * Use this method to define your trigger->command mappings. Triggers can be
    * created via the
@@ -53,6 +70,10 @@ public class RobotContainer {
   private void configureBindings() {
     m_driveSubsystem.setDefaultCommand(
         new ArcadeDriveCommand(m_driveSubsystem, m_driverController));
+        m_driverController.a().onTrue(m_armSubsystem.setAngleCommand(0));
+        m_driverController.b().onTrue(m_armSubsystem.setAngleCommand(45));
+        m_driverController.x().onTrue(m_armSubsystem.setAngleCommand(90));
+        m_driverController.y().onTrue(m_armSubsystem.stopCommand());
   }
 
   /**
