@@ -21,12 +21,33 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     
   }
-
+  //Declare Drive Constants for Unit 4
   public static class DriveConstants {
     public static final int kLeftLeaderMotorPort = 1;
-    // Port number for the left follower motor
     public static final int kLeftFollowerMotorPort = 2;
     public static final int kRightLeaderMotorPort = 3;
     public static final int kRightFollowerMotorPort = 4;
+  }
+  //Declare Arm Constants for Unit 4
+  public static class ArmConstants{
+    public final static int canID=12;
+    public final static double gearRatio=25;
+    public final static double kP=10;
+    public final static double kI=0;
+    public final static double kD=0;
+    public final static double maxVel=1000;
+    public final static double maxAcc=1000;
+    public final static boolean brakeMode=true;
+    public final static boolean enableStatorLimit=true;
+    public final static double statorLimit=40;
+    public final static boolean enableSupplyLimit=true;
+    public final static double supplyLimit=40;
+    public final static double armLength=40;
+    public final static double minAngleDeg =0;
+    public final static double maxAngleDeg = 90;
+    public final static double kS=0;
+    public final static double kG=0;
+    public final static double kA=0;
+    public final static double kV=0;
   }
 }
