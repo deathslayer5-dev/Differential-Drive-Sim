@@ -61,8 +61,8 @@ public class ArmSubsystem extends SubsystemBase{
     //Declares simulation variables
     private final SingleJointedArmSim armSim;
     private final Mechanism2d mech2d = new Mechanism2d(1f,1f);
-    private final MechanismRoot2d root = mech2d.getRoot("Arm",ArmConstants.armLength,90);
-    private final MechanismLigament2d armLig = root.append(new MechanismLigament2d("Arm", ArmConstants.armLength, 0));
+    private final MechanismRoot2d root = mech2d.getRoot("Arm root",0.5,0.1);
+    private final MechanismLigament2d armLig = root.append(new MechanismLigament2d("Arm", ArmConstants.armLength, 90));
     private final MotionMagicVoltage armMotionMagicControl;
 
     //Constructor
