@@ -11,18 +11,19 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.Command;
 
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.ctre.phoenix6.configs.*;
 import com.ctre.phoenix6.signals.*;
 import frc.robot.Constants.ArmConstants;
+import com.ctre.phoenix6.hardware.CANcoder;
 
 import edu.wpi.first.units.measure.*;
 
@@ -64,9 +65,10 @@ public class ArmSubsystem extends SubsystemBase{
     private final MechanismRoot2d root = mech2d.getRoot("Arm root",0.5,0.1);
     private final MechanismLigament2d armLig = root.append(new MechanismLigament2d("Arm", ArmConstants.armLength, 90));
     private final MotionMagicVoltage armMotionMagicControl;
-
+    private final CANcoder absoluteEncoder;
     //Constructor
     public ArmSubsystem() {
+        absoluteEncoder = new CANcoder(ArmConstants.absoluteEncoderID);
         //modelled after original arm repo
         motorSim = motor.getSimState();
         posReq=new PositionVoltage(0).withSlot(0);
@@ -81,6 +83,20 @@ public class ArmSubsystem extends SubsystemBase{
 
         //parameters
         TalonFXConfiguration config = new TalonFXConfiguration();
+        
+        // Configure to use CANcoder as absolute position source
+        config.Feedback.FeedbackRemoteSensorID = ArmConstants.absoluteEncoderID;
+        config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+        config.Feedback.RotorToSensorRatio = ArmConstants.gearRatio;
+        
+        // Configure the CANcoder to Talon FX relationship
+        CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
+        cancoderConfig.MagnetSensor.SensorDirection = 
+            ArmConstants.absoluteEncoderInverted ? 
+            SensorDirectionValue.Clockwise_Positive : 
+            SensorDirectionValue.CounterClockwise_Positive;
+        
+        absoluteEncoder.getConfigurator().apply(cancoderConfig);
         Slot0Configs slot0 = new Slot0Configs();
         slot0.kP = ArmConstants.kP;
         slot0.kI = ArmConstants.kI;
@@ -97,9 +113,9 @@ public class ArmSubsystem extends SubsystemBase{
         config.MotionMagic.MotionMagicCruiseVelocity = 10f;
         config.MotionMagic.MotionMagicAcceleration = 20f;
         config.MotorOutput.NeutralMode=ArmConstants.brakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast;
-
+        
         motor.getConfigurator().apply(config);
-        motor.setPosition(0);
+        syncAbsolutePosition();
         //init
         armSim = new SingleJointedArmSim(
             DCMotor.getKrakenX60(1),
@@ -114,7 +130,25 @@ public class ArmSubsystem extends SubsystemBase{
         armLig.setLength(ArmConstants.armLength);
         SmartDashboard.putData("Arm Visualization",mech2d);
     }
-
+    private void syncAbsolutePosition() {
+        // Sync the absolute encoder position to the motor controller
+        double absolutePosition = absoluteEncoder.getAbsolutePosition().getValueAsDouble();
+        double rotations = (absolutePosition - ArmConstants.absoluteEncoderOffset) / (2.0 * Math.PI);
+        motor.setControl(posReq.withPosition(rotations));
+    }
+    public void calibrateAbsoluteEncoderOffset() {
+        double currentPosition = motor.getPosition().getValueAsDouble(); // Current relative position
+        double absolutePosition = absoluteEncoder.getPosition().getValueAsDouble(); // Absolute position
+        
+        
+        double newOffset = currentPosition - absolutePosition;
+        
+        
+        SmartDashboard.putNumber("Arm/CalculatedOffset", newOffset);
+        System.out.println("Calculated absolute encoder offset: " + newOffset);
+        
+        
+    }
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
@@ -124,7 +158,8 @@ public class ArmSubsystem extends SubsystemBase{
                                     currSignal,
                                     tempSignal);
         SmartDashboard.putNumber("Arm/Position(rot)",motor.getPosition().getValueAsDouble());
-
+        SmartDashboard.putNumber("Arm/AbsolutePosition(rot)", absoluteEncoder.getAbsolutePosition().getValueAsDouble());
+        SmartDashboard.putBoolean("Arm/AbsEncoderConnected", absoluteEncoder.isConnected());
         //SmartDashBoard inputting parameters
         SmartDashboard.putNumber("Arm/Velocity(rps)",getVelocity());
         SmartDashboard.putNumber("Arm/Voltage",getVoltage());
