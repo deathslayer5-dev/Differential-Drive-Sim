@@ -59,4 +59,10 @@ public final class Constants {
     public static final double absoluteEncoderOffset = 0.0;
     public static final boolean absoluteEncoderInverted = false;
   }
+  public static class ElevatorConstants{
+    public static final int kElevatorLeaderCAN= 54;
+    public static final int kElevatorFollowerCAN=55;
+
+    public static final double kElevatorGearing = 7.5; 
+  }
 }
