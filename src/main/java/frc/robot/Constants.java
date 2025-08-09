@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.util.Units;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -63,6 +65,36 @@ public final class Constants {
     public static final int kElevatorLeaderCAN= 54;
     public static final int kElevatorFollowerCAN=55;
 
-    public static final double kElevatorGearing = 7.5; 
+    public static final double kElevatorGearing = 7.5;
+    public static final double kElevatorCarriageMass = Units.lbsToKilograms(20);
+    public static final double kElevatorDrumRadius = Units.inchesToMeters(1.644/2);
+    public static double kElevatorMetersPerMotorRotation = (kElevatorDrumRadius *2 *Math.PI) / kElevatorGearing;
+    public static final double kElevatorHeightMeters = 0.0;
+    public static final double kElevatorMinHeightMeters = 0.0;
+    public static final double kElevatorMaxHeightMeters = 0.90;
+    
+    public static final double kElevatorMaxVelocity = 1.5 / ElevatorConstants.kElevatorMetersPerMotorRotation;
+    public static final double kElevatorMaxAcceleration = 160.0;
+
+    public static final double kElevatorP = 1;
+    public static final double kElevatorI = 0.0;
+    public static final double kElevatorD = 0.01;
+
+    public static final double kElevatorS = 0.0;
+    public static final double kElevatorG = 0.2;
+    public static final double kElevatorV = 6.85 * kElevatorMetersPerMotorRotation;
+    public static final double kElevatorA = 0.04 * kElevatorMetersPerMotorRotation;
+
+    public static final double kElevatorCoralStationAndProcessorHeight = 0.0;
+
+    public static final double kElevatorCoralLevel1StartHeight = 0.025;
+    public static final double kElevatorCoralLevel1EndHeight = 0.225;
+    public static final double kElevatorCoralLevel2Height = 0.188;
+    public static final double kElevatorCoralLevel3Height = 0.548;
+
+    public static final double kElevatorAlgaeLowHeight = 0.604;
+    public static final double kElevatorAlgaeHighHeight = 0.90;
+    public static final double kElevatorTargetError = 0.005;
+    public static final double kElevatorMotorResistance = 0.002;  
   }
 }
